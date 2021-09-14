@@ -59,6 +59,10 @@ public final class DateTimeResponse extends DateTimeDataCallback implements Parc
 		// empty
 	}
 
+	public void aaa() {
+
+	}
+
 	@Override
 	public void onDateTimeReceived(@NonNull final BluetoothDevice device, @NonNull final Calendar calendar) {
 		this.calendar = calendar;

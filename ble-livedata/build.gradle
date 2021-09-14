@@ -2,6 +2,8 @@ plugins {
     id 'com.android.library'
 }
 
+group = 'no.nordicsemi.android'
+
 android {
     compileSdkVersion 30
 
@@ -40,5 +42,5 @@ if (rootProject.file('gradle/publish-module.gradle').exists()) {
         POM_NAME = 'A LiveData extension for the Bluetooth Low Energy library for Android'
         POM_PACKAGING = 'aar'
     }
-    apply from: rootProject.file('gradle/publish-module.gradle')
+    //apply from: rootProject.file('gradle/publish-module.gradle')
 }

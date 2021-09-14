@@ -3,6 +3,8 @@ plugins {
     id 'kotlin-android'
 }
 
+group = 'no.nordicsemi.android'
+
 android {
     compileSdkVersion 30
 
@@ -42,5 +44,5 @@ if (rootProject.file('gradle/publish-module.gradle').exists()) {
         POM_NAME = 'Kotlin extension library for BLE Library for Android'
         POM_PACKAGING = 'aar'
     }
-    apply from: rootProject.file('gradle/publish-module.gradle')
+    //apply from: rootProject.file('gradle/publish-module.gradle')
 }
