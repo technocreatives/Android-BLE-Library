@@ -509,6 +509,7 @@ abstract class BleManagerHandler extends RequestHandler {
 			final BluetoothDevice currentDevice = bluetoothDevice;
 			if (bluetoothEnabled && currentDevice != null && currentDevice.equals(device)) {
 				if (this.connectRequest != null) {
+					log(Log.WARN, () -> "BBQ Normal?!");
 					this.connectRequest.notifySuccess(device);
 				}
 			} else {
@@ -584,6 +585,7 @@ abstract class BleManagerHandler extends RequestHandler {
 
 		// This should not happen in normal circumstances, but may, when Bluetooth was turned off
 		// when retrying to create a connection.
+		log(Log.WARN, () -> "connectRequest: " + connectRequest);
 		if (connectRequest == null)
 			return false;
 		final boolean shouldAutoConnect = connectRequest.shouldAutoConnect();
@@ -629,6 +631,7 @@ abstract class BleManagerHandler extends RequestHandler {
 			log(Log.DEBUG, () -> "gatt = device.connectGatt(autoConnect = false)");
 			bluetoothGatt = device.connectGatt(context, false, gattCallback);
 		}
+		log(Log.DEBUG, () -> "BBQ Bluetooth gatt " + bluetoothGatt);
 		return true;
 	}
 
@@ -1768,6 +1771,7 @@ abstract class BleManagerHandler extends RequestHandler {
 					" and new state: " + newState + " (" + ParserUtils.stateToString(newState) + ")");
 
 			if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
+				log(Log.INFO, () -> "BBQ IS THIS SOMETHIGN?");
 				// Sometimes, when a notification/indication is received after the device got
 				// disconnected, the Android calls onConnectionStateChanged again, with state
 				// STATE_CONNECTED.
@@ -1919,6 +1923,7 @@ abstract class BleManagerHandler extends RequestHandler {
 
 		@Override
 		public final void onServicesDiscovered(@NonNull final BluetoothGatt gatt, final int status) {
+			log(Log.INFO, () -> "Service Discovered");
 			if (!serviceDiscoveryRequested)
 				return;
 			serviceDiscoveryRequested = false;
@@ -2473,6 +2478,8 @@ abstract class BleManagerHandler extends RequestHandler {
 		public final void onPhyUpdate(@NonNull final BluetoothGatt gatt,
 									  @PhyValue final int txPhy, @PhyValue final int rxPhy,
 									  final int status) {
+
+			log(Log.INFO, () -> "onPHY UPDATED!!");
 			if (status == BluetoothGatt.GATT_SUCCESS) {
 				log(Log.INFO, () ->
 						"PHY updated (TX: " + ParserUtils.phyToString(txPhy) +
@@ -2501,6 +2508,7 @@ abstract class BleManagerHandler extends RequestHandler {
 		public final void onPhyRead(@NonNull final BluetoothGatt gatt,
 									@PhyValue final int txPhy, @PhyValue final int rxPhy,
 									final int status) {
+			log(Log.INFO, () -> "onPHY READ!!");
 			if (status == BluetoothGatt.GATT_SUCCESS) {
 				log(Log.INFO, () ->
 						"PHY read (TX: " + ParserUtils.phyToString(txPhy) +
@@ -2995,6 +3003,7 @@ abstract class BleManagerHandler extends RequestHandler {
 		if (request == null) {
 			if (initQueue != null) {
 				initQueue = null; // release the queue
+				log(Log.VERBOSE, () -> "Release init queue Done initializing?");
 
 				// Set the 'operation in progress' flag, so any request made in onDeviceReady()
 				// will not start new nextRequest() call.
@@ -3006,6 +3015,7 @@ abstract class BleManagerHandler extends RequestHandler {
 					postConnectionStateChange(o -> o.onDeviceReady(bluetoothDevice));
 				}
 				if (connectRequest != null) {
+					log(Log.VERBOSE, () -> "BBQ Done initializing?");
 					connectRequest.notifySuccess(connectRequest.getDevice());
 					connectRequest = null;
 				}
@@ -3053,6 +3063,7 @@ abstract class BleManagerHandler extends RequestHandler {
 					   (r.characteristic.getProperties() & requiredProperty) != 0);
 			if (result) {
 				if (r instanceof ConditionalWaitRequest) {
+					log(Log.VERBOSE, () -> "Some weird log request");
 					final ConditionalWaitRequest<?> cwr = (ConditionalWaitRequest<?>) r;
 					if (cwr.isFulfilled()) {
 						cwr.notifyStarted(bluetoothDevice);
@@ -3096,11 +3107,15 @@ abstract class BleManagerHandler extends RequestHandler {
 
 		switch (request.type) {
 			case CONNECT: {
+			    final String log = "1. BBQ CONNECT: " + request;
+				log(Log.WARN, () -> log);
 				//noinspection ConstantConditions
 				final ConnectRequest cr = (ConnectRequest) request;
 				connectRequest = cr;
 				this.request = null;
 				result = internalConnect(cr.getDevice(), cr);
+				final String log2 = "1. BBQ result " + result;
+				log(Log.WARN, () -> "1. BBQ result " + log2);
 				break;
 			}
 			case DISCONNECT: {
@@ -3264,6 +3279,8 @@ abstract class BleManagerHandler extends RequestHandler {
 				break;
 			}
 			case REQUEST_CONNECTION_PRIORITY: {
+
+				log(Log.INFO, () -> "BBQ Request Connection Prio");
 				//noinspection ConstantConditions
 				final ConnectionPriorityRequest cpr = (ConnectionPriorityRequest) request;
 				connectionPriorityOperationInProgress = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
@@ -3385,7 +3402,10 @@ abstract class BleManagerHandler extends RequestHandler {
 		// The result may be false if given characteristic or descriptor were not found
 		// on the device, or the feature is not supported on the Android.
 		// In that case, proceed with next operation and ignore the one that failed.
+		String l = "1. BBQ result " + result + " bluethooth: " + bluetoothDevice;
+		log(Log.WARN, () -> l);
 		if (!result && bluetoothDevice != null) {
+			log(Log.WARN, () -> "Notify fail");
 			request.notifyFail(bluetoothDevice,
 					connected ?
 							FailCallback.REASON_NULL_ATTRIBUTE :
@@ -3396,6 +3416,8 @@ abstract class BleManagerHandler extends RequestHandler {
 			connectionPriorityOperationInProgress = false;
 			nextRequest(true);
 		}
+		String l1 = "1. BBQ result " + result + " done";
+		log(Log.WARN, () -> l1);
 	}
 
 	// Helper methods
