@@ -424,14 +424,18 @@ abstract class BleManagerHandler extends RequestHandler {
 	 * Closes and releases resources.
 	 */
 	void close() {
+		log(Log.WARN, () -> "BBQ close is called");
 		try {
 			final Context context = manager.getContext();
 			context.unregisterReceiver(bluetoothStateBroadcastReceiver);
 			context.unregisterReceiver(mBondingBroadcastReceiver);
 		} catch (final Exception e) {
 			// the receiver must have been not registered or unregistered before.
+			log(Log.WARN, () -> "the receiver must have been not registered or unregistered before:" + e.getMessage());
 		}
+		log(Log.WARN, () -> "BBQ close requires LOCK");
 		synchronized (LOCK) {
+			log(Log.WARN, () -> "BBQ close got LOCK");
 			if (bluetoothGatt != null) {
 				if (manager.shouldClearCacheWhenDisconnected()) {
 					if (internalRefreshDeviceCache()) {
@@ -444,7 +448,7 @@ abstract class BleManagerHandler extends RequestHandler {
 				try {
 					bluetoothGatt.close();
 				} catch (final Throwable t) {
-					// ignore
+					log(Log.WARN, () -> "bluetoothGatt.close: " + t.getMessage());
 				}
 				bluetoothGatt = null;
 			}
@@ -459,6 +463,7 @@ abstract class BleManagerHandler extends RequestHandler {
 			initQueue = null;
 			bluetoothDevice = null;
 			connected = false;
+			log(Log.WARN, () -> "BBQ close release LOCK");
 		}
 	}
 
@@ -498,6 +503,7 @@ abstract class BleManagerHandler extends RequestHandler {
 
 	private boolean internalConnect(@NonNull final BluetoothDevice device,
 									@Nullable final ConnectRequest connectRequest) {
+		log(Log.WARN, () -> "BBQ internalConnect is called");
 		final boolean bluetoothEnabled = BluetoothAdapter.getDefaultAdapter().isEnabled();
 		if (connected || !bluetoothEnabled) {
 			final BluetoothDevice currentDevice = bluetoothDevice;
@@ -521,7 +527,9 @@ abstract class BleManagerHandler extends RequestHandler {
 		}
 
 		final Context context = manager.getContext();
+		log(Log.WARN, () -> "BBQ internalConnect require LOCK");
 		synchronized (LOCK) {
+			log(Log.WARN, () -> "BBQ internalConnect got the LOCK");
 			if (bluetoothGatt != null) {
 				// There are 2 ways of reconnecting to the same device:
 				// 1. Reusing the same BluetoothGatt object and calling connect() - this will force
@@ -538,6 +546,7 @@ abstract class BleManagerHandler extends RequestHandler {
 						bluetoothGatt.close();
 					} catch (final Throwable t) {
 						// ignore
+						log(Log.WARN, () -> "bluetoothGatt.close: " + t.getMessage());
 					}
 					bluetoothGatt = null;
 					try {
@@ -545,6 +554,7 @@ abstract class BleManagerHandler extends RequestHandler {
 						Thread.sleep(200); // Is 200 ms enough?
 					} catch (final InterruptedException e) {
 						// Ignore
+						log(Log.WARN, () -> "InterruptedException: " + e.getMessage());
 					}
 				} else {
 					// Instead, the gatt.connect() method will be used to reconnect to the same device.
@@ -569,6 +579,7 @@ abstract class BleManagerHandler extends RequestHandler {
 							new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
 				}
 			}
+			log(Log.WARN, () -> "BBQ internalConnect releases the LOCK");
 		}
 
 		// This should not happen in normal circumstances, but may, when Bluetooth was turned off
